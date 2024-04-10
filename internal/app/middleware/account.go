@@ -16,12 +16,12 @@ var acceptedRoles = map[string]struct{}{
 func RoleValidator(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		roles, ok := c.Request().Header["User-Role"]
-		if ok && len(roles) > 0 {
-			if _, ok := acceptedRoles[roles[0]]; !ok {
-				c.String(http.StatusForbidden, "access denied")
-			}
-		} else {
-			c.String(http.StatusForbidden, "access denied")
+		if !ok || len(roles) == 0 {
+			return c.String(http.StatusForbidden, "access denied")
+		}
+
+		if _, ok := acceptedRoles[roles[0]]; !ok {
+			return c.String(http.StatusForbidden, "access denied")
 		}
 
 		role := models.UserRole(roles[0])

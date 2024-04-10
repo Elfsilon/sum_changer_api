@@ -3,6 +3,7 @@ package app
 import (
 	"database/sql"
 	"fmt"
+	"log"
 	"os"
 	"sum_changer_api/internal/app/controllers"
 	"sum_changer_api/internal/app/middleware"
@@ -12,8 +13,22 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/sirupsen/logrus"
 
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 	_ "github.com/lib/pq"
 )
+
+var (
+	dbpass   = MustGetEnv("DB_PASSWORD")
+	logLevel = MustGetEnv("LOG_LEVEL")
+)
+
+func MustGetEnv(key string) string {
+	val := os.Getenv(key)
+	if val == "" {
+		log.Fatalf("env variable %v not set", key)
+	}
+	return val
+}
 
 func setupLogger(logLevel string) *logrus.Logger {
 	logger := logrus.New()
@@ -24,14 +39,14 @@ func setupLogger(logLevel string) *logrus.Logger {
 		lvl = logrus.InfoLevel
 	}
 	logger.SetLevel(lvl)
+	logger.SetFormatter(&logrus.TextFormatter{
+		DisableTimestamp: true,
+	})
 
 	return logger
 }
 
 func Run() {
-	dbpass := os.Getenv("DB_PASSWORD")
-	logLevel := os.Getenv("LOG_LEVEL")
-
 	logger := setupLogger(logLevel)
 
 	// Init db
