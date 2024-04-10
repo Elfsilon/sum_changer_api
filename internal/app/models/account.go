@@ -1,5 +1,5 @@
 package models
 
-type Request struct {
-	Sum float64 `json:"sum"`
+type Account struct {
+	Sum float32 `json:"sum"`
 }

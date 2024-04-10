@@ -1,0 +1,54 @@
+version: '3.9'
+
+services:
+  app:
+    depends_on:
+      - db
+    build:
+      context: .
+    restart: always
+    hostname: app
+    container_name: sum_changer_api
+    environment:
+      - DB_PASSWORD=${DB_PASSWORD:?database password not passed}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+    ports:
+      - ${APP_OUTER_PORT}:${APP_INNER_PORT}
+    networks:
+      - app_net
+
+  db:
+    image: postgres
+    restart: always
+    hostname: db
+    container_name: sum_changer_postgres
+    environment:
+      - POSTGRES_PASSWORD=${DB_PASSWORD:?database password not passed}
+    ports:
+      - ${DB_OUTER_PORT}:${DB_INNER_PORT}
+    volumes:
+      - app_db:/var/lib/postgresql/data
+    networks:
+      - app_net
+  
+  pgadmin4:
+    image: elestio/pgadmin
+    container_name: sum_changer_pgadmin
+    restart: always
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_EMAIL}
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_PASSWORD}
+      - PGADMIN_LISTEN_PORT=${PGADMIN_INNER_PORT}
+    ports:
+      - ${PGADMIN_OUTER_PORT}:${PGADMIN_INNER_PORT}
+    volumes:
+      - ./servers.json:/pgadmin4/servers.json
+    networks:
+      - app_net
+
+volumes:
+  app_db:
+
+networks:
+  app_net:
+    driver: bridge
