@@ -37,17 +37,13 @@ func (a *Account) Handle(c echo.Context) error {
 		return c.String(http.StatusBadRequest, ErrInvalidBody(err).Error())
 	}
 
-	if err := c.Bind(&payload); err != nil {
-		return c.String(http.StatusBadRequest, ErrInvalidBody(err).Error())
-	}
-
 	if payload.Sum <= 0 {
 		return c.String(http.StatusBadRequest, ErrNegativeSum.Error())
 	}
 
 	if err := a.ser.HandleOperation(role, payload.Sum); err != nil {
 		if errors.Is(err, services.ErrInsufficientFunds) {
-			return c.String(http.StatusBadRequest, ErrInsufficientFunds.Error())
+			return c.String(http.StatusForbidden, ErrInsufficientFunds.Error())
 		}
 
 		return c.String(http.StatusInternalServerError, err.Error())
